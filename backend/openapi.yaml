@@ -1,0 +1,181 @@
+openapi: "3.0.0"
+info:
+  title: Guestbook API
+  version: 0.1.0
+
+x-yc-apigateway:
+  service_account_id: {API_SA_ID}
+
+paths:
+  /{file+}:
+    options:
+      parameters:
+        - name: file
+          in: path
+          description: greedy param
+          required: false
+          schema:
+            type: string
+      description: Greedy options
+      operationId: greedyOptions
+      x-yc-apigateway-integration:
+        type: dummy
+        http_code: 200
+        content:
+          "*": ""
+        http_headers:
+          Allow: OPTIONS, GET, HEAD, POST
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Headers: Content-Type, Authorization
+  "/api/info":
+    get:
+      summary: Server Info
+      operationId: server_info_api_info_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/InfoOutputDto"
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: {GUESTBOOK_API_CONTAINER_ID}
+  "/api/messages":
+    get:
+      summary: Messages
+      operationId: names_api_messages_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MessageOutputDto"
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: {GUESTBOOK_API_CONTAINER_ID}
+    post:
+      summary: Message Add
+      operationId: name_add_api_messages_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Message"
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CreateOutputDto"
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/HTTPValidationError"
+      x-yc-apigateway-integration:
+        type: serverless_containers
+        container_id: {GUESTBOOK_API_CONTAINER_ID}
+components:
+  schemas:
+    Message:
+      title: Message
+      required:
+      - message
+      - author
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+        author:
+          title: Author
+          type: string
+    MessageOutputDto:
+      title: MessageOutputDto
+      required:
+      - messages
+      - count
+      type: object
+      properties:
+        messages:
+          title: Messages
+          type: array
+          items:
+            "$ref": "#/components/schemas/MessageOutputName"
+        count:
+          title: Count
+          type: integer
+    MessageOutputName:
+      title: MessageOutputName
+      required:
+      - message
+      - author
+      - message_id
+      type: object
+      properties:
+        name:
+          title: Message
+          type: string
+        author:
+          title: Author
+          type: string
+        name_id:
+          title: Message Id
+          type: string
+    CreateOutputDto:
+      title: CreateOutputDto
+      required:
+      - created_id
+      type: object
+      properties:
+        created_id:
+          title: Created Id
+          type: string
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            "$ref": "#/components/schemas/ValidationError"
+    InfoOutputDto:
+      title: InfoOutputDto
+      required:
+      - backend_version
+      - replica_id
+      type: object
+      properties:
+        backend_version:
+          title: Backend Version
+          type: string
+        replica_id:
+          title: Replica Id
+          type: string
+    ValidationError:
+      title: ValidationError
+      required:
+      - loc
+      - msg
+      - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string

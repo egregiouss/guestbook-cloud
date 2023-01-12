@@ -1,0 +1,6 @@
+{
+  "type": "backend",
+  "info": "Api for guestbook",
+  "version": 8,
+  "inherit": true
+}
